@@ -48,22 +48,6 @@
                         </button>
                         <div class="collapse navbar-collapse ml-auto" id="navbarsExample09">
                             <ul class="navbar-nav ml-auto">
-                                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                                <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-                                <li class="nav-item"><a class="nav-link" href="partnership.html">Students</a></li>
-                                <li class="nav-item"><a class="nav-link" href="events.html">Events</a></li>
-                                <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
-                                <li class="nav-item"><a class="nav-link" href="schedule.html">Schedule</a></li>
-                                <li class="nav-item">
-                                    <a class="nav-link btn btn-instagram" href="https://www.instagram.com/lacrosseamericanjiujitsu?igsh=MXAyamNuOG1penlweQ%3D%3D&utm_source=qr" target="_blank">
-                                        <i class="fab fa-instagram"></i>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link btn btn-facebook" href="http://www.facebook.com/LaCrosseAmericanJiuJitsu" target="_blank">
-                                        <i class="fab fa-facebook-f"></i>
-                                    </a>
-                                </li>
                                 <li class="nav-item">
                                     <a class="btn btn-outline-primary rounded-pill nav-link" href="login.html">Logout</a>
                                 </li>
@@ -77,10 +61,12 @@
 
     <section class="member-info" style="margin-top: 30vh">
         <h1 id="greeting">Loading...</h1>
-        <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
-        <p><strong>Belt Level:</strong> <span id="beltLevel"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
         <p><strong>Phone Number:</strong> <span id="phoneNumber"></span></p>
-        <p><strong>Subscription:</strong> <span id="subscription"></span></p>
+        <p><strong>Address:</strong> <span id="address"></span></p>
+        <p><strong>Join Date:</strong> <span id="joinDate"></span></p>
+        <p><strong>Belt Level:</strong> <span id="beltLevel"></span></p>
+        <p><strong>Subscription: $</strong> <span id="subscription"></span></p>
         <p><strong>Total Check-Ins:</strong> <span id="checkIns"></span></p>
     </section>
 
@@ -100,61 +86,109 @@
         <span class="icon ion-ios-arrow-up"></span>
     </div>
 
-    <!-- Firebase and Member Data Logic -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-      import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyCbZ7xXq3ymeWRgXDjOsu-xMvEKwv33ig8",
-        authDomain: "member-management-system-cb2dc.firebaseapp.com",
-        projectId: "member-management-system-cb2dc",
-        storageBucket: "member-management-system-cb2dc.firebasestorage.app",
-        messagingSenderId: "834961798562",
-        appId: "1:834961798562:web:525a5bbfc7f53000d4eefb",
-        measurementId: "G-YE8ZCN42B2"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-
-      // Get email from URL query parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      const email = urlParams.get('email');
-
-      if (!email) {
-        document.getElementById('greeting').textContent = 'Error: No email provided.';
-      } else {
-        // Fetch member data
-        const q = query(collection(db, 'Members'), where('Email', '==', email));
-        getDocs(q).then((querySnapshot) => {
-          if (querySnapshot.empty) {
-            document.getElementById('greeting').textContent = 'Error: Member not found.';
-            return;
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyCbZ7xXq3ymeWRgXDjOsu-xMvEKwv33ig8",
+          authDomain: "member-management-system-cb2dc.firebaseapp.com",
+          projectId: "member-management-system-cb2dc",
+          storageBucket: "member-management-system-cb2dc.firebasestorage.app",
+          messagingSenderId: "834961798562",
+          appId: "1:834961798562:web:525a5bbfc7f53000d4eefb",
+          measurementId: "G-YE8ZCN42B2"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+      
+        // Get email from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+      
+        // Define formatJoinDate function before it's used
+        function formatJoinDate(dateInput) {
+          if (!dateInput) return null;
+      
+          let dateObj;
+      
+          // Handle Firestore Timestamp
+          if (dateInput && typeof dateInput.toDate === 'function') {
+            dateObj = dateInput.toDate(); // Convert Timestamp to Date
           }
-
-          // Assuming one document per email
-          const memberData = querySnapshot.docs[0].data();
-          const name = memberData.Name || 'Unknown';
-
-          // Display greeting
-          document.getElementById('greeting').textContent = `Hello ${name}. Welcome Back!`;
-
-          // Display member fields (excluding Password)
-          document.getElementById('emailDisplay').textContent = memberData.Email || 'N/A';
-          document.getElementById('beltLevel').textContent = memberData.BeltLevel || 'N/A';
-          document.getElementById('phoneNumber').textContent = memberData.PhoneNumber || 'N/A';
-          document.getElementById('subscription').textContent = memberData.Subscription || 'N/A';
-          document.getElementById('checkIns').textContent = memberData.CheckIns 
-            ? memberData.CheckIns.length 
-            : '0';
-        }).catch((error) => {
-          console.error('Error fetching member data:', error);
-          document.getElementById('greeting').textContent = 'Error loading member data.';
-        });
-      }
-    </script>
+          // Handle string input (e.g., "18 November 2023 at 21:09:13 UTC-6")
+          else if (typeof dateInput === 'string') {
+            const regex = /^(\d{1,2})\s([A-Za-z]+)\s(\d{4})\sat\s/;
+            const match = dateInput.match(regex);
+            if (!match) return 'Invalid Date';
+            const [, day, month, year] = match;
+            // Create Date object (assuming UTC for simplicity)
+            const monthNames = {
+              'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+              'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+            };
+            const monthIndex = monthNames[month];
+            if (monthIndex === undefined) return 'Invalid Month';
+            dateObj = new Date(year, monthIndex, parseInt(day));
+          }
+          // Handle Date object
+          else if (dateInput instanceof Date) {
+            dateObj = dateInput;
+          }
+          // Handle unexpected types
+          else {
+            return 'Invalid Date';
+          }
+      
+          if (isNaN(dateObj)) return 'Invalid Date';
+      
+          // Format as "DD Month YYYY"
+          const day = dateObj.getDate();
+          const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ];
+          const month = monthNames[dateObj.getMonth()];
+          const year = dateObj.getFullYear();
+          return `${day} ${month} ${year}`;
+        }
+      
+        if (!email) {
+          document.getElementById('greeting').textContent = 'Error: No email provided.';
+        } else {
+          // Fetch member data
+          const q = query(collection(db, 'Members'), where('Email', '==', email));
+          getDocs(q).then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              document.getElementById('greeting').textContent = 'Error: Member not found.';
+              return;
+            }
+      
+            // Assuming one document per email
+            const memberData = querySnapshot.docs[0].data();
+            const name = memberData.Name || 'Unknown';
+      
+            // Display greeting
+            document.getElementById('greeting').textContent = `Hello ${name}! Welcome Back!`;
+      
+            // Display member fields (excluding Password)
+            document.getElementById('email').textContent = memberData.Email || 'N/A';
+            document.getElementById('beltLevel').textContent = memberData.BeltLevel || 'N/A';
+            document.getElementById('phoneNumber').textContent = memberData.PhoneNumber || 'N/A';
+            document.getElementById('subscription').textContent = memberData.Subscription || 'N/A';
+            document.getElementById('address').textContent = memberData.Address || 'N/A';
+            document.getElementById('joinDate').textContent = formatJoinDate(memberData.JoinDate) || 'N/A';
+            document.getElementById('checkIns').textContent = memberData.CheckIns 
+              ? memberData.CheckIns.length 
+              : '0';
+          }).catch((error) => {
+            console.error('Error fetching member data:', error);
+            document.getElementById('greeting').textContent = 'Error loading member data.';
+          });
+        }
+      </script>
 
     <script src="plugins/jquery/jquery.min.js"></script>
     <script src="plugins/bootstrap/bootstrap.min.js"></script>
